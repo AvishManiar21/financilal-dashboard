@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financials Comparison Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --header-bg: #003f5c;
+            --text-color: #4b5563;
+            --card-bg: #ffffff;
+            --kpi-text-1: #ff6361;
+            --kpi-text-2: #bc5090;
+            --kpi-text-3: #58508d;
+            --kpi-text-4: #ffa600;
+            --kpi-text-5: #0070c0;
+            --chart-title: #003f5c;
+            --border-color: #e5e7eb;
+            --input-bg: #ffffff;
+            --input-focus: #003f5c;
+        }
+        [data-theme="dark"] {
+            --bg-color: #1a1a2e;
+            --header-bg: #1f2742;
+            --text-color: #d1d5db;
+            --card-bg: #1f2742;
+            --kpi-text-1: #ff9c74;
+            --kpi-text-2: #e63946;
+            --kpi-text-3: #a8dadc;
+            --kpi-text-4: #f4a261;
+            --kpi-text-5: #2a9d8f;
+            --chart-title: #e7e5e5;
+            --border-color: #374151;
+            --input-bg: #374151;
+            --input-focus: #4f46e5;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease;
+        }
+        .header {
+            background-color: var(--header-bg);
+        }
+        .kpi-card, .bg-white {
+            background-color: var(--card-bg);
+            transition: all 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .kpi-value {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+        }
+        .kpi-value-1 { color: var(--kpi-text-1); }
+        .kpi-value-2 { color: var(--kpi-text-2); }
+        .kpi-value-3 { color: var(--kpi-text-3); }
+        .kpi-value-4 { color: var(--kpi-text-4); }
+        .kpi-value-5 { color: var(--kpi-text-5); }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+        }
+        .chart-title {
+            color: var(--chart-title);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: auto;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            color: var(--text-color);
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #003f5c;
+            animation: spin 1s ease infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .table-row-hover:hover {
+            background-color: #f3f4f6;
+        }
+        [data-theme="dark"] .table-row-hover:hover {
+            background-color: #374151;
+        }
+        input, select {
+            background-color: var(--input-bg);
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+        input:focus, select:focus {
+            border-color: var(--input-focus);
+            box-shadow: 0 0 0 1px var(--input-focus);
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <header class="header text-white p-8 text-center relative">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">Financials Comparison Dashboard</h1>
+        <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-200">Analyzing key financial metrics across different companies.</p>
+        <button id="themeToggle" class="absolute top-4 right-4 text-white p-2 rounded-full transition-all hover:bg-white hover:text-gray-800">
+            ☀️
+        </button>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <section id="key-metrics" class="my-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-8 text-center">
+                <div class="kpi-card rounded-lg shadow-md p-6">
+                    <p class="text-lg uppercase font-semibold text-gray-400">Average P/E Ratio</p>
+                    <p id="avg-pe" class="kpi-value font-bold kpi-value-1"></p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-md p-6">
+                    <p class="text-lg uppercase font-semibold text-gray-400">Largest Market Cap</p>
+                    <p id="max-market-cap" class="kpi-value font-bold kpi-value-2"></p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-md p-6">
+                    <p class="text-lg uppercase font-semibold text-gray-400">Highest Dividend Yield</p>
+                    <p id="max-dividend-yield" class="kpi-value font-bold kpi-value-3"></p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-md p-6">
+                    <p class="text-lg uppercase font-semibold text-gray-400">Average Price/Sales</p>
+                    <p id="avg-price-sales" class="kpi-value font-bold kpi-value-4"></p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-md p-6">
+                    <p class="text-lg uppercase font-semibold text-gray-400">Top Performing Stock</p>
+                    <p id="top-performer" class="kpi-value font-bold kpi-value-5"></p>
+                </div>
+                <div class="kpi-card rounded-lg shadow-md p-6">
+                    <p class="text-lg uppercase font-semibold text-gray-400">Total Watchlist Value</p>
+                    <p id="total-watchlist-value" class="kpi-value font-bold kpi-value-5"></p>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualizations" class="my-16">
+            <h2 class="text-3xl font-bold text-center mb-8 chart-title">Key Comparative Visualizations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Price/Earnings Ratio Comparison</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">A comparison of company valuations.</p>
+                    <div class="chart-container">
+                        <canvas id="peRatioChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Market Cap vs. EBITDA</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">Analyzing the relationship between company size and profitability.</p>
+                    <div class="chart-container">
+                        <canvas id="marketCapEBITDAChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Sector Distribution</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">A breakdown of the companies by their industry sector.</p>
+                    <div class="chart-container">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+                
+                 <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Price vs. 52 Week High/Low</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">Current prices in the context of their annual trading range.</p>
+                    <div class="chart-container">
+                        <canvas id="priceRangeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Dynamic Correlation Scatter Plot</h3>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-700 mb-4">
+                        <div class="flex items-center gap-2">
+                            <label for="x-axis-select">X-Axis:</label>
+                            <select id="x-axis-select" onchange="window.updateDynamicCorrelationChart(window.filteredCompanies)" class="block pl-3 pr-10 py-1 text-base border-gray-300 rounded-md focus:outline-none sm:text-sm">
+                                <option value="marketCap">Market Cap</option>
+                                <option value="pe">P/E Ratio</option>
+                                <option value="dividend">Dividend Yield</option>
+                                <option value="ebitda">EBITDA</option>
+                                <option value="priceSales">Price/Sales</option>
+                                <option value="priceBook">Price/Book</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label for="y-axis-select">Y-Axis:</label>
+                            <select id="y-axis-select" onchange="window.updateDynamicCorrelationChart(window.filteredCompanies)" class="block pl-3 pr-10 py-1 text-base border-gray-300 rounded-md focus:outline-none sm:text-sm">
+                                <option value="pe">P/E Ratio</option>
+                                <option value="marketCap">Market Cap</option>
+                                <option value="dividend">Dividend Yield</option>
+                                <option value="ebitda">EBITDA</option>
+                                <option value="priceSales">Price/Sales</option>
+                                <option value="priceBook">Price/Book</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="dynamicCorrelationChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Valuation vs. Dividend Yield</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">A bubble chart showing the relationship between Market Cap, P/E Ratio, and Dividend Yield.</p>
+                    <div class="chart-container">
+                        <canvas id="bubbleChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Normalized Performance</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">Compare up to five companies across multiple normalized metrics. The outer ring represents the best-in-class performance.</p>
+                    <div class="chart-container">
+                        <canvas id="normalizedComparisonChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="watchlist" class="my-16">
+            <div class="kpi-card rounded-lg shadow-md p-6 max-w-full overflow-x-auto">
+                <h2 class="text-3xl font-bold text-center mb-8 chart-title">My Watchlist</h2>
+                <p class="text-center mb-6 max-w-4xl mx-auto">Companies you have added to your watchlist. Click the star icon to remove them.</p>
+                <table class="w-full text-left border-collapse table-auto">
+                    <thead>
+                        <tr class="bg-[#0070c0] text-white">
+                            <th class="p-4">⭐</th>
+                            <th class="p-4" onclick="window.sortTable('symbol', 'string', 'watchlist')">Symbol <span id="watchlist-symbol-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('name', 'string', 'watchlist')">Name <span id="watchlist-name-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('sector', 'string', 'watchlist')">Sector <span id="watchlist-sector-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('price', 'number', 'watchlist')">Price <span id="watchlist-price-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('pe', 'number', 'watchlist')">P/E <span id="watchlist-pe-sort-icon"></span></th>
+                            <th class="p-4 rounded-tr-lg" onclick="window.sortTable('marketCap', 'number', 'watchlist')">Market Cap <span id="watchlist-marketCap-sort-icon"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="watchlist-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <section id="dataset" class="my-16">
+            <div class="kpi-card rounded-lg shadow-md p-6 max-w-full overflow-x-auto">
+                <h2 class="text-3xl font-bold text-center mb-8 chart-title">Raw Dataset</h2>
+                <div class="flex flex-col md:flex-row gap-4 mb-6 items-center justify-center">
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="sectorFilter" class="text-sm font-medium text-gray-700">Filter by Sector:</label>
+                        <select id="sectorFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-var(--input-focus) focus:border-var(--input-focus) sm:text-sm transition-all">
+                            <option value="">All Sectors</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="companySearch" class="text-sm font-medium text-gray-700">Search by Symbol:</label>
+                        <input type="text" id="companySearch" placeholder="e.g., MMM" class="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-var(--input-focus) focus:border-var(--input-focus) sm:text-sm transition-all">
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="priceMax" class="text-sm font-medium text-gray-700">Max Price:</label>
+                        <input type="number" id="priceMax" placeholder="e.g., 100" class="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-var(--input-focus) focus:border-var(--input-focus) sm:text-sm transition-all">
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="peMax" class="text-sm font-medium text-gray-700">Max P/E Ratio:</label>
+                        <input type="number" id="peMax" placeholder="e.g., 25" class="mt-1 block w-full pl-3 pr-3 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-var(--input-focus) focus:border-var(--input-focus) sm:text-sm transition-all">
+                    </div>
+                    <button onclick="window.clearFilters()" class="w-full md:w-auto px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all">Clear Filters</button>
+                </div>
+                <p class="text-center mb-6 max-w-4xl mx-auto">The underlying data used to create the charts above. Click on "Analyze" to get a financial summary of the company.</p>
+                <table class="w-full text-left border-collapse table-auto">
+                    <thead>
+                        <tr class="bg-[#003f5c] text-white">
+                            <th class="p-4">⭐</th>
+                            <th class="p-4" onclick="window.sortTable('symbol', 'string')">Symbol <span id="symbol-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('name', 'string')">Name <span id="name-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('sector', 'string')">Sector <span id="sector-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('price', 'number')">Price <span id="price-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('pe', 'number')">P/E <span id="pe-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('dividend', 'number')">Dividend Yield <span id="dividend-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('marketCap', 'number')">Market Cap <span id="marketCap-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('ebitda', 'number')">EBITDA <span id="ebitda-sort-icon"></span></th>
+                            <th class="p-4 rounded-tr-lg">Analysis</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companies-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="analysis-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="window.closeModal()">&times;</span>
+            <h3 id="analysis-title" class="text-xl font-bold mb-4 chart-title"></h3>
+            <div id="loading-spinner" class="spinner my-8"></div>
+            <div id="analysis-content" class="text-left space-y-4">
+                <div id="summary-section">
+                    <h4 class="text-lg font-semibold chart-title mb-2">Analyst's Summary</h4>
+                    <p id="analysis-text" class="text-gray-700"></p>
+                </div>
+                <div id="ratios-section" style="display:none;">
+                    <h4 class="text-lg font-semibold chart-title mb-2">Key Financial Ratios</h4>
+                    <ul id="ratios-list" class="list-disc list-inside space-y-1 text-gray-700"></ul>
+                </div>
+                <div id="swot-section" style="display:none;">
+                    <h4 class="text-lg font-semibold chart-title mb-2">SWOT Analysis</h4>
+                    <ul id="swot-list" class="list-disc list-inside space-y-1 text-gray-700"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="header text-white text-center p-6 mt-16">
+        <p>&copy; 2025 Financials Comparison Dashboard. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        const lightVibrantPalette = ['#ff6361', '#bc5090', '#58508d', '#ffa600', '#0070c0', '#42a5f5', '#66bb6a', '#ffb74d'];
+        const darkVibrantPalette = ['#ff9c74', '#e63946', '#a8dadc', '#457b9d', '#f4a261', '#2a9d8f', '#e76f51', '#f77f00'];
+
+        let currentPalette = lightVibrantPalette;
+        
+        let allCompanies = [
+            { symbol: 'MMM', name: '3M Company', sector: 'Industrials', price: 222.89, pe: 24.31, dividend: 2.3328617, low52: 175.49, high52: 259.77, marketCap: 138721055226.00, ebitda: 9048000000.00, priceSales: 4.39, priceBook: 11.34, assets: 47915000000.00, liabilities: 28944000000.00 },
+            { symbol: 'AOS', name: 'A.O. Smith Corp', sector: 'Industrials', price: 60.24, pe: 27.76, dividend: 1.1479592, low52: 48.925, high52: 68.39, marketCap: 10783419933.00, ebitda: 601000000.00, priceSales: 3.58, priceBook: 6.35, assets: 2984000000.00, liabilities: 1184000000.00 },
+            { symbol: 'ABT', name: 'Abbott Laboratories', sector: 'Health Care', price: 56.27, pe: 22.51, dividend: 1.9089824, low52: 42.28, high52: 64.6, marketCap: 102121042306.00, ebitda: 5744000000.00, priceSales: 3.74, priceBook: 3.99, assets: 63630000000.00, liabilities: 39598000000.00 },
+            { symbol: 'ABBV', name: 'AbbVie Inc', sector: 'Health Care', price: 101.48, pe: 19.2, dividend: 3.242945, low52: 78.4, high52: 104.94, marketCap: 156403698000.00, ebitda: 10300000000.00, priceSales: 6.29, priceBook: -17.85, assets: 78918000000.00, liabilities: 79294000000.00 },
+            { symbol: 'ACN', name: 'Accenture Plc', sector: 'Information Technology', price: 150.51, pe: 24.51, dividend: 1.714479, low52: 137.96, high52: 162.6, marketCap: 98600100000.00, ebitda: 5900000000.00, priceSales: 2.87, priceBook: 10.63, assets: 29870000000.00, liabilities: 10609000000.00 },
+            { symbol: 'ATVI', name: 'Activision Blizzard', sector: 'Information Technology', price: 65.83, pe: 37.81, dividend: 0.598583, low52: 57.65, high52: 74.92, marketCap: 50821033873.00, ebitda: 2170000000.00, priceSales: 5.76, priceBook: 4.54, assets: 20042000000.00, liabilities: 11116000000.00 },
+            { symbol: 'ADBE', name: 'Adobe Systems Inc', sector: 'Information Technology', price: 177.34, pe: 54.43, dividend: 0.00, low52: 162.62, high52: 200.73, marketCap: 89635058866.00, ebitda: 2362428000.00, priceSales: 9.6, priceBook: 9.42, assets: 16869000000.00, liabilities: 8003000000.00 },
+            { symbol: 'AMD', name: 'Advanced Micro Devices Inc', sector: 'Information Technology', price: 12.32, pe: 50.88, dividend: 0.00, low52: 9.53, high52: 15.65, marketCap: 11846958801.00, ebitda: 428000000.00, priceSales: 4.29, priceBook: 8.87, assets: 4837000000.00, liabilities: 2886000000.00 }
+        ];
+        
+        let availableMetrics = [
+            { id: 'price', name: 'Price ($)' },
+            { id: 'pe', name: 'P/E Ratio' },
+            { id: 'dividend', name: 'Dividend Yield' },
+            { id: 'marketCap', name: 'Market Cap' },
+            { id: 'ebitda', name: 'EBITDA' },
+            { id: 'priceSales', name: 'Price/Sales' },
+            { id: 'priceBook', name: 'Price/Book' },
+        ];
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let userId = null;
+        let userWatchlist = [];
+        let sortColumn = null;
+        let sortDirection = 'asc';
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                window.setupWatchlistListener();
+                window.filterAndRender();
+            } else {
+                try {
+                    await signInAnonymously(auth);
+                } catch (err) {
+                    console.error("Firebase Anonymous Auth failed:", err);
+                    userId = 'anonymous'; // Fallback for UI without Firestore access
+                    window.filterAndRender();
+                }
+            }
+        });
+
+        const analysisModal = document.getElementById('analysis-modal');
+        const analysisTitle = document.getElementById('analysis-title');
+        const analysisText = document.getElementById('analysis-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const tableBody = document.getElementById('companies-table-body');
+        const watchlistTableBody = document.getElementById('watchlist-table-body');
+        const sectorFilter = document.getElementById('sectorFilter');
+        const companySearch = document.getElementById('companySearch');
+        const priceMaxInput = document.getElementById('priceMax');
+        const peMaxInput = document.getElementById('peMax');
+        const avgPeEl = document.getElementById('avg-pe');
+        const maxMarketCapEl = document.getElementById('max-market-cap');
+        const maxDividendYieldEl = document.getElementById('max-dividend-yield');
+        const avgPriceSalesEl = document.getElementById('avg-price-sales');
+        const totalWatchlistValueEl = document.getElementById('total-watchlist-value');
+        const themeToggle = document.getElementById('themeToggle');
+        const xAxisSelect = document.getElementById('x-axis-select');
+        const yAxisSelect = document.getElementById('y-axis-select');
+        const ratiosSection = document.getElementById('ratios-section');
+        const ratiosList = document.getElementById('ratios-list');
+        const swotSection = document.getElementById('swot-section');
+        const swotList = document.getElementById('swot-list');
+
+        let topPerformerEl;
+        
+        let charts = {};
+        window.filteredCompanies = [];
+
+        window.setupWatchlistListener = function() {
+            if (!userId || userId === 'anonymous') return;
+            const watchlistDocRef = doc(db, `artifacts/${appId}/users/${userId}/watchlist`, 'userWatchlist');
+            onSnapshot(watchlistDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    userWatchlist = JSON.parse(data.favorites);
+                } else {
+                    userWatchlist = [];
+                }
+                window.renderWatchlist();
+                window.filterAndRender();
+            }, (error) => {
+                console.error("Uncaught Error in snapshot listener:", error);
+            });
+        };
+
+        window.toggleFavorite = async function(symbol) {
+            if (!userId || userId === 'anonymous') {
+                console.log("User not signed in or using anonymous fallback. Cannot save watchlist.");
+                return;
+            }
+            const watchlistDocRef = doc(db, `artifacts/${appId}/users/${userId}/watchlist`, 'userWatchlist');
+            const companyIndex = userWatchlist.findIndex(c => c.symbol === symbol);
+            if (companyIndex > -1) {
+                userWatchlist.splice(companyIndex, 1);
+            } else {
+                const company = allCompanies.find(c => c.symbol === symbol);
+                if (company) {
+                    userWatchlist.push(company);
+                }
+            }
+            await setDoc(watchlistDocRef, { favorites: JSON.stringify(userWatchlist) });
+        };
+        
+        window.renderWatchlist = function() {
+            watchlistTableBody.innerHTML = '';
+            let totalValue = 0;
+            if (userWatchlist.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="7" class="p-4 text-center">Your watchlist is empty. Add companies from the table below.</td>`;
+                watchlistTableBody.appendChild(row);
+            } else {
+                userWatchlist.forEach(company => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b transition-all table-row-hover';
+                    const isFavorite = userWatchlist.some(fav => fav.symbol === company.symbol);
+                    const starIcon = isFavorite ? '⭐' : '☆';
+                    row.innerHTML = `
+                        <td class="p-4"><button onclick="window.toggleFavorite('${company.symbol}')">${starIcon}</button></td>
+                        <td class="p-4">${company.symbol}</td>
+                        <td class="p-4">${company.name}</td>
+                        <td class="p-4">${company.sector}</td>
+                        <td class="p-4">$${company.price.toFixed(2)}</td>
+                        <td class="p-4">${company.pe.toFixed(2)}</td>
+                        <td class="p-4">$${(company.marketCap / 1e9).toFixed(1)}B</td>
+                    `;
+                    watchlistTableBody.appendChild(row);
+                    totalValue += company.marketCap;
+                });
+            }
+            totalWatchlistValueEl.textContent = `$${(totalValue / 1e9).toFixed(1)}B`;
+        };
+        
+        window.sortTable = function(column, type, listType = 'all') {
+            let companiesToSort = (listType === 'all') ? window.filteredCompanies : userWatchlist;
+            
+            if (sortColumn === column) {
+                sortDirection = (sortDirection === 'asc') ? 'desc' : 'asc';
+            } else {
+                sortDirection = 'asc';
+                sortColumn = column;
+            }
+            
+            companiesToSort.sort((a, b) => {
+                const valA = a[column];
+                const valB = b[column];
+
+                if (type === 'string') {
+                    return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                } else if (type === 'number') {
+                    return sortDirection === 'asc' ? valA - valB : valB - valA;
+                }
+            });
+
+            document.querySelectorAll('th span').forEach(span => span.textContent = '');
+            const sortIcon = document.getElementById(`${column}-sort-icon`);
+            if (sortIcon) {
+                sortIcon.textContent = sortDirection === 'asc' ? ' ▲' : ' ▼';
+            }
+            
+            if (listType === 'all') {
+                window.renderTable(companiesToSort);
+            } else {
+                window.renderWatchlist();
+            }
+        };
+
+        window.analyzeCompany = async function(symbol) {
+            const company = allCompanies.find(c => c.symbol === symbol);
+            if (!company) return;
+
+            analysisTitle.textContent = `Financial Analysis for ${company.name}`;
+            analysisText.textContent = '';
+            ratiosList.innerHTML = '';
+            swotList.innerHTML = '';
+            ratiosSection.style.display = 'none';
+            swotSection.style.display = 'none';
+            loadingSpinner.style.display = 'block';
+            analysisModal.style.display = 'flex';
+
+            const userQuery = `Based on the following data for ${company.name} (symbol: ${company.symbol}): Market Cap: ${company.marketCap}, Price/Earnings: ${company.pe}, EBITDA: ${company.ebitda}, Dividend Yield: ${company.dividend}, Price/Sales: ${company.priceSales}, Price/Book: ${company.priceBook}. Also, consider a calculated Debt-to-Equity ratio of ${(company.liabilities / (company.assets - company.liabilities)).toFixed(2)}. Provide a structured JSON response with the following keys:\n1. "summary": A concise single-paragraph financial summary.\n2. "ratios": An array of key financial ratios with "name" and "value" fields (e.g., "Return on Assets", "Debt-to-Equity", "Current Ratio").\n3. "swot": An array of high-level SWOT analysis points with "category" and "description" fields (e.g., "Strengths", "Weaknesses").`;
+            const systemPrompt = "Act as a world-class financial analyst. Your goal is to provide a comprehensive, structured financial health analysis of a company based on the provided data. The response must be a valid JSON object.";
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "summary": { "type": "STRING" },
+                            "ratios": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "name": { "type": "STRING" },
+                                        "value": { "type": "STRING" }
+                                    }
+                                }
+                            },
+                            "swot": {
+                                "type": "ARRAY",
+                                "items": {
+                                    "type": "OBJECT",
+                                    "properties": {
+                                        "category": { "type": "STRING" },
+                                        "description": { "type": "STRING" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+                const result = await response.json();
+                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (jsonText) {
+                    const analysis = JSON.parse(jsonText);
+                    analysisText.textContent = analysis.summary;
+                    
+                    if (analysis.ratios && analysis.ratios.length > 0) {
+                        ratiosSection.style.display = 'block';
+                        analysis.ratios.forEach(ratio => {
+                            const li = document.createElement('li');
+                            li.textContent = `${ratio.name}: ${ratio.value}`;
+                            ratiosList.appendChild(li);
+                        });
+                    }
+
+                    if (analysis.swot && analysis.swot.length > 0) {
+                        swotSection.style.display = 'block';
+                        analysis.swot.forEach(swot => {
+                            const li = document.createElement('li');
+                            li.textContent = `${swot.category}: ${swot.description}`;
+                            swotList.appendChild(li);
+                        });
+                    }
+
+                } else {
+                    analysisText.textContent = 'Could not generate analysis. Please try again.';
+                }
+            } catch (error) {
+                console.error("Error fetching analysis:", error);
+                analysisText.textContent = 'An error occurred. Please try again later.';
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        };
+
+        window.closeModal = function() {
+            analysisModal.style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            if (event.target == analysisModal) {
+                window.closeModal();
+            }
+        };
+        
+        window.updateAllCharts = function(filteredCompanies) {
+            window.filteredCompanies = filteredCompanies;
+            window.updatePeRatioChart(filteredCompanies);
+            window.updateMarketCapEBITDAChart(filteredCompanies);
+            window.updateSectorChart(filteredCompanies);
+            window.updatePriceRangeChart(filteredCompanies);
+            window.updateBubbleChart(filteredCompanies);
+            window.updateDynamicCorrelationChart(filteredCompanies);
+            window.updateKPIs(filteredCompanies);
+            window.updateNormalizedComparisonChart(filteredCompanies);
+        }
+
+        window.updateKPIs = function(companies) {
+            const topPerformerEl = document.getElementById('top-performer');
+            if (companies.length === 0) {
+                avgPeEl.textContent = 'N/A';
+                maxMarketCapEl.textContent = 'N/A';
+                maxDividendYieldEl.textContent = 'N/A';
+                avgPriceSalesEl.textContent = 'N/A';
+                totalWatchlistValueEl.textContent = 'N/A';
+                if (topPerformerEl) topPerformerEl.textContent = 'N/A';
+                return;
+            }
+            const avgPe = companies.reduce((sum, c) => sum + c.pe, 0) / companies.length;
+            avgPeEl.textContent = avgPe.toFixed(1);
+            
+            const maxMarketCap = companies.reduce((max, c) => Math.max(max, c.marketCap), 0);
+            maxMarketCapEl.textContent = `$${(maxMarketCap / 1e9).toFixed(1)}B`;
+
+            const maxDividendYield = companies.reduce((max, c) => Math.max(max, c.dividend), 0);
+            maxDividendYieldEl.textContent = `${(maxDividendYield * 100).toFixed(1)}%`;
+            
+            const avgPriceSales = companies.reduce((sum, c) => sum + c.priceSales, 0) / companies.length;
+            avgPriceSalesEl.textContent = avgPriceSales.toFixed(2);
+            
+            const totalWatchlistValue = userWatchlist.reduce((sum, c) => sum + c.marketCap, 0);
+            totalWatchlistValueEl.textContent = `$${(totalWatchlistValue / 1e9).toFixed(1)}B`;
+            
+            let topPerformer = companies.reduce((top, c) => {
+                const currentDiff = c.high52 - c.price;
+                const topDiff = top.high52 - top.price;
+                return (currentDiff < topDiff) ? c : top;
+            }, companies[0]);
+            
+            if (topPerformerEl) topPerformerEl.textContent = topPerformer.symbol;
+        }
+
+        window.renderTable = function(companies) {
+            tableBody.innerHTML = '';
+            companies.forEach(company => {
+                const row = document.createElement('tr');
+                row.className = 'border-b transition-all table-row-hover';
+                const isFavorite = userWatchlist.some(fav => fav.symbol === company.symbol);
+                const starIcon = isFavorite ? '⭐' : '☆';
+                row.innerHTML = `
+                    <td class="p-4"><button onclick="window.toggleFavorite('${company.symbol}')">${starIcon}</button></td>
+                    <td class="p-4">${company.symbol}</td>
+                    <td class="p-4">${company.name}</td>
+                    <td class="p-4">${company.sector}</td>
+                    <td class="p-4">$${company.price.toFixed(2)}</td>
+                    <td class="p-4">${company.pe.toFixed(2)}</td>
+                    <td class="p-4">${(company.dividend * 100).toFixed(2)}%</td>
+                    <td class="p-4">$${(company.marketCap / 1e9).toFixed(1)}B</td>
+                    <td class="p-4">$${(company.ebitda / 1e9).toFixed(2)}B</td>
+                    <td class="p-4">
+                        <button onclick="window.analyzeCompany('${company.symbol}')" class="bg-[#ffa600] text-white py-1 px-3 rounded-full text-sm font-semibold hover:bg-opacity-80 transition">✨ Analyze</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        window.filterAndRender = function() {
+            const sector = sectorFilter.value;
+            const searchTerm = companySearch.value.toLowerCase();
+            const priceMax = priceMaxInput.value;
+            const peMax = peMaxInput.value;
+
+            let filteredCompanies = allCompanies;
+
+            if (sector) {
+                filteredCompanies = filteredCompanies.filter(c => c.sector === sector);
+            }
+            if (searchTerm) {
+                filteredCompanies = filteredCompanies.filter(c => c.symbol.toLowerCase().includes(searchTerm));
+            }
+            if (priceMax) {
+                filteredCompanies = filteredCompanies.filter(c => c.price <= parseFloat(priceMax));
+            }
+            if (peMax) {
+                filteredCompanies = filteredCompanies.filter(c => c.pe <= parseFloat(peMax));
+            }
+
+            window.renderTable(filteredCompanies);
+            window.updateAllCharts(filteredCompanies);
+        }
+
+        window.populateSectorFilter = function() {
+            const sectors = [...new Set(allCompanies.map(c => c.sector))].sort();
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                sectorFilter.appendChild(option);
+            });
+        }
+        
+        window.populateMetricSelects = function() {
+            const selects = [xAxisSelect, yAxisSelect];
+            selects.forEach(select => {
+                select.innerHTML = '';
+                availableMetrics.forEach(metric => {
+                    const option = document.createElement('option');
+                    option.value = metric.id;
+                    option.textContent = metric.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        window.clearFilters = function() {
+            sectorFilter.value = '';
+            companySearch.value = '';
+            priceMaxInput.value = '';
+            peMaxInput.value = '';
+            window.filterAndRender();
+        };
+        
+        const getTooltipTitleCallback = () => ({
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) {
+                                return label.join(' ');
+                            } else {
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        window.updatePeRatioChart = function(companies) {
+            const peRatioCtx = document.getElementById('peRatioChart').getContext('2d');
+            if (charts.peRatio) {
+                charts.peRatio.destroy();
+            }
+            charts.peRatio = new Chart(peRatioCtx, {
+                type: 'bar',
+                data: {
+                    labels: companies.map(c => c.symbol),
+                    datasets: [{
+                        label: 'Price/Earnings Ratio',
+                        data: companies.map(c => c.pe),
+                        backgroundColor: currentPalette[0],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...getTooltipTitleCallback(),
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'P/E Ratio',
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        window.updateMarketCapEBITDAChart = function(companies) {
+            const marketCapEBITDACtx = document.getElementById('marketCapEBITDAChart').getContext('2d');
+            if (charts.marketCapEBITDA) {
+                charts.marketCapEBITDA.destroy();
+            }
+            const scatterData = companies.map(c => ({
+                x: c.marketCap / 1e9,
+                y: c.ebitda / 1e9,
+                r: 8,
+                name: c.name
+            }));
+            charts.marketCapEBITDA = new Chart(marketCapEBITDACtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Companies',
+                        data: scatterData,
+                        backgroundColor: currentPalette[1],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...getTooltipTitleCallback(),
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Market Cap ($B)',
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return `$${(value / 1e9).toFixed(1)}B`;
+                                },
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'EBITDA ($B)',
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                             ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const company = context.raw.name;
+                                    const marketCap = context.raw.x;
+                                    const ebitda = context.raw.y;
+                                    return `${company}: Market Cap $${marketCap.toFixed(2)}B, EBITDA $${ebitda.toFixed(2)}B`;
+                                }
+                            }
+                        },
+                         legend: {
+                            labels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        window.updateSectorChart = function(companies) {
+            const sectorCtx = document.getElementById('sectorChart').getContext('2d');
+            if (charts.sector) {
+                charts.sector.destroy();
+            }
+            const sectors = [...new Set(companies.map(c => c.sector))];
+            const sectorData = sectors.map(sector => companies.filter(c => c.sector === sector).length);
+            charts.sector = new Chart(sectorCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: sectors,
+                    datasets: [{
+                        label: 'Number of Companies',
+                        data: sectorData,
+                        backgroundColor: currentPalette,
+                        borderColor: document.body.dataset.theme === 'dark' ? '#1a1a2e' : '#ffffff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        ...getTooltipTitleCallback().plugins,
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            }
+                        },
+                        title: {
+                            display: false
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        window.updatePriceRangeChart = function(companies) {
+            const priceRangeCtx = document.getElementById('priceRangeChart').getContext('2d');
+            if (charts.priceRange) {
+                charts.priceRange.destroy();
+            }
+            const priceLabels = companies.map(c => c.symbol);
+            const priceData = companies.map(c => c.price);
+            const low52Data = companies.map(c => c.low52);
+            const high52Data = companies.map(c => c.high52);
+            charts.priceRange = new Chart(priceRangeCtx, {
+                type: 'line',
+                data: {
+                    labels: priceLabels,
+                    datasets: [{
+                        label: 'Current Price',
+                        data: priceData,
+                        borderColor: currentPalette[2],
+                        tension: 0.2,
+                        fill: false,
+                        pointBackgroundColor: currentPalette[2],
+                        pointBorderColor: '#fff',
+                    },
+                    {
+                        label: '52 Week High',
+                        data: high52Data,
+                        borderColor: 'rgba(0, 0, 0, 0.1)',
+                        borderDash: [5, 5],
+                        tension: 0.2,
+                        fill: false,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '52 Week Low',
+                        data: low52Data,
+                        borderColor: 'rgba(0, 0, 0, 0.1)',
+                        borderDash: [5, 5],
+                        tension: 0.2,
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...getTooltipTitleCallback(),
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Price ($)',
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.updateDynamicCorrelationChart = function(companies) {
+            const chartCtx = document.getElementById('dynamicCorrelationChart').getContext('2d');
+            if (charts.dynamicCorrelation) {
+                charts.dynamicCorrelation.destroy();
+            }
+
+            const xAxisMetric = xAxisSelect.value;
+            const yAxisMetric = yAxisSelect.value;
+            
+            const xAxisLabel = availableMetrics.find(m => m.id === xAxisMetric).name;
+            const yAxisLabel = availableMetrics.find(m => m.id === yAxisMetric).name;
+
+            const scatterData = companies.map(c => ({
+                x: c[xAxisMetric],
+                y: c[yAxisMetric],
+                name: c.name,
+                symbol: c.symbol
+            }));
+
+            charts.dynamicCorrelation = new Chart(chartCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Companies',
+                        data: scatterData,
+                        backgroundColor: currentPalette[3],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: xAxisLabel,
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: yAxisLabel,
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const company = context.raw.name;
+                                    const xValue = context.raw.x;
+                                    const yValue = context.raw.y;
+                                    return `${company}: ${xAxisLabel} ${xValue.toFixed(2)}, ${yAxisLabel} ${yValue.toFixed(2)}`;
+                                }
+                            }
+                        },
+                        legend: {
+                            labels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        window.updateBubbleChart = function(companies) {
+            const bubbleCtx = document.getElementById('bubbleChart').getContext('2d');
+            if (charts.bubble) {
+                charts.bubble.destroy();
+            }
+
+            const maxMarketCap = Math.max(...companies.map(c => c.marketCap));
+            const maxPe = Math.max(...companies.map(c => c.pe));
+            const maxDividend = Math.max(...companies.map(c => c.dividend));
+
+            const bubbleData = companies.map(c => ({
+                x: c.marketCap,
+                y: c.pe,
+                r: Math.max(5, (c.dividend / maxDividend) * 20),
+                name: c.name,
+                marketCap: c.marketCap,
+                pe: c.pe,
+                dividend: c.dividend
+            }));
+
+            charts.bubble = new Chart(bubbleCtx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Companies',
+                        data: bubbleData,
+                        backgroundColor: currentPalette.map((color, index) => currentPalette[index % currentPalette.length]),
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Market Cap ($)',
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return `$${(value / 1e9).toFixed(1)}B`;
+                                },
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'P/E Ratio',
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                             ticks: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const company = context.raw.name;
+                                    const marketCap = (context.raw.marketCap / 1e9).toFixed(1);
+                                    const pe = context.raw.pe.toFixed(2);
+                                    const dividend = (context.raw.dividend * 100).toFixed(2);
+                                    return `${company}: Mkt Cap $${marketCap}B, P/E ${pe}, Div Yield ${dividend}%`;
+                                }
+                            }
+                        },
+                         legend: {
+                            labels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.updateNormalizedComparisonChart = function(companies) {
+            const chartCtx = document.getElementById('normalizedComparisonChart').getContext('2d');
+            if (charts.normalizedComparison) {
+                charts.normalizedComparison.destroy();
+            }
+
+            const metrics = ['pe', 'dividend', 'marketCap', 'priceSales'];
+            const labels = ['P/E Ratio', 'Dividend Yield', 'Market Cap', 'Price/Sales'];
+            
+            const datasets = companies.map((company, index) => {
+                const data = metrics.map(metric => {
+                    const values = companies.map(c => c[metric]);
+                    const maxVal = Math.max(...values);
+                    const minVal = Math.min(...values);
+
+                    if (maxVal === minVal) return 0.5;
+
+                    const normalizedValue = (company[metric] - minVal) / (maxVal - minVal);
+                    
+                    if (metric === 'pe' || metric === 'priceSales') {
+                         return 1 - normalizedValue;
+                    }
+                    return normalizedValue;
+                });
+
+                return {
+                    label: company.symbol,
+                    data: data,
+                    backgroundColor: `rgba(${parseInt(currentPalette[index].slice(1, 3), 16)}, ${parseInt(currentPalette[index].slice(3, 5), 16)}, ${parseInt(currentPalette[index].slice(5, 7), 16)}, 0.2)`,
+                    borderColor: currentPalette[index],
+                    pointBackgroundColor: currentPalette[index],
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: currentPalette[index]
+                };
+            });
+
+            charts.normalizedComparison = new Chart(chartCtx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    ...getTooltipTitleCallback(),
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
+                            },
+                            grid: {
+                                color: document.body.dataset.theme === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'
+                            },
+                            pointLabels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            },
+                            ticks: {
+                                display: false
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 1.0,
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.body.dataset.theme === 'dark' ? '#d1d5db' : '#4b5563'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.filterAndRender = function() {
+            const sector = sectorFilter.value;
+            const searchTerm = companySearch.value.toLowerCase();
+            const priceMax = priceMaxInput.value;
+            const peMax = peMaxInput.value;
+
+            let filteredCompanies = allCompanies;
+
+            if (sector) {
+                filteredCompanies = filteredCompanies.filter(c => c.sector === sector);
+            }
+            if (searchTerm) {
+                filteredCompanies = filteredCompanies.filter(c => c.symbol.toLowerCase().includes(searchTerm));
+            }
+            if (priceMax) {
+                filteredCompanies = filteredCompanies.filter(c => c.price <= parseFloat(priceMax));
+            }
+            if (peMax) {
+                filteredCompanies = filteredCompanies.filter(c => c.pe <= parseFloat(peMax));
+            }
+
+            window.renderTable(filteredCompanies);
+            window.updateAllCharts(filteredCompanies);
+        }
+
+        window.populateSectorFilter = function() {
+            const sectors = [...new Set(allCompanies.map(c => c.sector))].sort();
+            sectors.forEach(sector => {
+                const option = document.createElement('option');
+                option.value = sector;
+                option.textContent = sector;
+                sectorFilter.appendChild(option);
+            });
+        }
+        
+        window.populateMetricSelects = function() {
+            const selects = [xAxisSelect, yAxisSelect];
+            selects.forEach(select => {
+                select.innerHTML = '';
+                availableMetrics.forEach(metric => {
+                    const option = document.createElement('option');
+                    option.value = metric.id;
+                    option.textContent = metric.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        window.clearFilters = function() {
+            sectorFilter.value = '';
+            companySearch.value = '';
+            priceMaxInput.value = '';
+            peMaxInput.value = '';
+            window.filterAndRender();
+        };
+        
+        window.onload = function() {
+            topPerformerEl = document.getElementById('top-performer');
+            window.populateSectorFilter();
+            window.populateMetricSelects();
+            
+            sectorFilter.addEventListener('change', window.filterAndRender);
+            companySearch.addEventListener('input', window.filterAndRender);
+            priceMaxInput.addEventListener('input', window.filterAndRender);
+            peMaxInput.addEventListener('input', window.filterAndRender);
+            
+            themeToggle.addEventListener('click', () => {
+                const isDark = document.body.dataset.theme === 'dark';
+                document.body.dataset.theme = isDark ? 'light' : 'dark';
+                themeToggle.textContent = isDark ? '☀️' : '🌙';
+                currentPalette = isDark ? lightVibrantPalette : darkVibrantPalette;
+                window.updateAllCharts(window.filteredCompanies);
+            });
+        };
+    </script>
+</body>
+</html>

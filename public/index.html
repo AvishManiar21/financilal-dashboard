@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financials Comparison Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="light">
+
+    <header class="header text-white p-8 text-center relative">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">Financials Comparison Dashboard</h1>
+        <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-200">Analyzing key financial metrics across different companies.</p>
+        <div class="absolute top-4 right-4 flex items-center gap-2">
+            <button id="refreshData" class="text-white p-2 rounded-full transition-all hover:bg-white hover:text-gray-800" title="Refresh Data">
+                🔄
+            </button>
+            <button id="themeToggle" class="text-white p-2 rounded-full transition-all hover:bg-white hover:text-gray-800" title="Toggle Theme">
+                ☀️
+            </button>
+        </div>
+        <div class="mt-4 text-sm text-gray-300">
+            <span id="dataStatus">Loading data...</span>
+            <span id="lastUpdated" class="ml-2"></span>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-8 text-center">
+                <div class="spinner mb-4"></div>
+                <p class="text-lg font-semibold">Loading Dashboard...</p>
+            </div>
+        </div>
+        
+        <section id="key-metrics" class="my-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 text-center">
+                <div class="kpi-card rounded-xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white border border-gray-100">
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-3">
+                            <span class="text-red-600 text-xl">📊</span>
+                        </div>
+                        <p class="text-sm uppercase font-semibold text-gray-500 mb-2 tracking-wide">Average P/E Ratio</p>
+                        <p id="avg-pe" class="text-3xl font-bold kpi-value-1 mb-1">-</p>
+                        <p class="text-xs text-gray-400">Price to Earnings</p>
+                    </div>
+                </div>
+                <div class="kpi-card rounded-xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white border border-gray-100">
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3">
+                            <span class="text-purple-600 text-xl">💰</span>
+                        </div>
+                        <p class="text-sm uppercase font-semibold text-gray-500 mb-2 tracking-wide">Largest Market Cap</p>
+                        <p id="max-market-cap" class="text-3xl font-bold kpi-value-2 mb-1">-</p>
+                        <p class="text-xs text-gray-400">Market Value</p>
+                    </div>
+                </div>
+                <div class="kpi-card rounded-xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white border border-gray-100">
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
+                            <span class="text-indigo-600 text-xl">📈</span>
+                        </div>
+                        <p class="text-sm uppercase font-semibold text-gray-500 mb-2 tracking-wide">Highest Dividend Yield</p>
+                        <p id="max-dividend-yield" class="text-3xl font-bold kpi-value-3 mb-1">-</p>
+                        <p class="text-xs text-gray-400">Annual Return</p>
+                    </div>
+                </div>
+                <div class="kpi-card rounded-xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white border border-gray-100">
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-3">
+                            <span class="text-orange-600 text-xl">💹</span>
+                        </div>
+                        <p class="text-sm uppercase font-semibold text-gray-500 mb-2 tracking-wide">Average Price/Sales</p>
+                        <p id="avg-price-sales" class="text-3xl font-bold kpi-value-4 mb-1">-</p>
+                        <p class="text-xs text-gray-400">Valuation Ratio</p>
+                    </div>
+                </div>
+                <div class="kpi-card rounded-xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white border border-gray-100">
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
+                            <span class="text-blue-600 text-xl">🏆</span>
+                        </div>
+                        <p class="text-sm uppercase font-semibold text-gray-500 mb-2 tracking-wide">Top Performer</p>
+                        <p id="top-performer" class="text-3xl font-bold kpi-value-5 mb-1">-</p>
+                        <p class="text-xs text-gray-400">Best Stock</p>
+                    </div>
+                </div>
+                <div class="kpi-card rounded-xl shadow-lg p-6 hover:shadow-xl hover:scale-105 transition-all duration-300 bg-white border border-gray-100">
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                            <span class="text-green-600 text-xl">⭐</span>
+                        </div>
+                        <p class="text-sm uppercase font-semibold text-gray-500 mb-2 tracking-wide">Watchlist Value</p>
+                        <p id="total-watchlist-value" class="text-3xl font-bold kpi-value-5 mb-1">-</p>
+                        <p class="text-xs text-gray-400">Total Portfolio</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualizations" class="my-16">
+            <h2 class="text-3xl font-bold text-center mb-8 chart-title">Key Comparative Visualizations</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Price/Earnings Ratio Comparison</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">A comparison of company valuations.</p>
+                    <div class="chart-container">
+                        <canvas id="peRatioChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Market Cap vs. EBITDA</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">Analyzing the relationship between company size and profitability.</p>
+                    <div class="chart-container">
+                        <canvas id="marketCapEBITDAChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Sector Distribution</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">A breakdown of the companies by their industry sector.</p>
+                    <div class="chart-container">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+                
+                 <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Price vs. 52 Week High/Low</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">Current prices in the context of their annual trading range.</p>
+                    <div class="chart-container">
+                        <canvas id="priceRangeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Dynamic Correlation Scatter Plot</h3>
+                    <div class="flex flex-col sm:flex-row items-center gap-4 text-sm text-gray-700 mb-4">
+                        <div class="flex items-center gap-2">
+                            <label for="x-axis-select">X-Axis:</label>
+                            <select id="x-axis-select" onchange="window.updateDynamicCorrelationChart(window.filteredCompanies)" class="block pl-3 pr-10 py-1 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary sm:text-sm">
+                                <option value="marketCap">Market Cap</option>
+                                <option value="pe">P/E Ratio</option>
+                                <option value="dividend">Dividend Yield</option>
+                                <option value="ebitda">EBITDA</option>
+                                <option value="priceSales">Price/Sales</option>
+                                <option value="priceBook">Price/Book</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label for="y-axis-select">Y-Axis:</label>
+                            <select id="y-axis-select" onchange="window.updateDynamicCorrelationChart(window.filteredCompanies)" class="block pl-3 pr-10 py-1 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary sm:text-sm">
+                                <option value="pe">P/E Ratio</option>
+                                <option value="marketCap">Market Cap</option>
+                                <option value="dividend">Dividend Yield</option>
+                                <option value="ebitda">EBITDA</option>
+                                <option value="priceSales">Price/Sales</option>
+                                <option value="priceBook">Price/Book</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="dynamicCorrelationChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Valuation vs. Dividend Yield</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">A bubble chart showing the relationship between Market Cap, P/E Ratio, and Dividend Yield.</p>
+                    <div class="chart-container">
+                        <canvas id="bubbleChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center md:col-span-2">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Normalized Performance</h3>
+                    <p class="text-center text-sm text-gray-500 mb-4">Compare up to five companies across multiple normalized metrics. The outer ring represents the best-in-class performance.</p>
+                    <div class="chart-container">
+                        <canvas id="normalizedComparisonChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="ml-insights" class="my-16">
+            <h2 class="text-3xl font-bold text-center mb-8 chart-title">Machine Learning Insights</h2>
+            <div class="kpi-card rounded-lg shadow-md p-6 mb-6">
+                <div class="flex flex-col md:flex-row gap-3 items-center justify-center">
+                    <button id="btnRunCluster" class="px-4 py-2 rounded-md bg-primary text-white hover:bg-opacity-90">Run Clustering (k=3)</button>
+                    <button id="btnRunRegression" class="px-4 py-2 rounded-md bg-secondary text-white hover:bg-opacity-90">Run Regression (MarketCap → P/E)</button>
+                    <button id="btnRunAnomalies" class="px-4 py-2 rounded-md bg-accent text-white hover:bg-opacity-90">Detect Anomalies (P/E)</button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Clusters</h3>
+                    <div class="chart-container">
+                        <canvas id="clusterChart"></canvas>
+                    </div>
+                </div>
+                <div class="kpi-card rounded-lg shadow-md p-6 flex flex-col items-center">
+                    <h3 class="text-2xl font-bold mb-2 text-center chart-title">Regression</h3>
+                    <div class="chart-container">
+                        <canvas id="regressionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="kpi-card rounded-lg shadow-md p-6 mt-8">
+                <h3 class="text-2xl font-bold mb-4 text-center chart-title">Anomalies (P/E Ratio)</h3>
+                <ul id="anomaliesList" class="list-disc list-inside space-y-1 text-gray-700"></ul>
+            </div>
+        </section>
+
+        <section id="watchlist" class="my-16">
+            <div class="kpi-card rounded-lg shadow-md p-6 max-w-full overflow-x-auto">
+                <h2 class="text-3xl font-bold text-center mb-8 chart-title">My Watchlist</h2>
+                <p class="text-center mb-6 max-w-4xl mx-auto">Companies you have added to your watchlist. Click the star icon to remove them.</p>
+                <table class="w-full text-left border-collapse table-auto">
+                    <thead>
+                        <tr class="bg-secondary text-white">
+                            <th class="p-4">⭐</th>
+                            <th class="p-4" onclick="window.sortTable('symbol', 'string', 'watchlist')">Symbol <span id="watchlist-symbol-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('name', 'string', 'watchlist')">Name <span id="watchlist-name-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('sector', 'string', 'watchlist')">Sector <span id="watchlist-sector-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('price', 'number', 'watchlist')">Price <span id="watchlist-price-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('pe', 'number', 'watchlist')">P/E <span id="watchlist-pe-sort-icon"></span></th>
+                            <th class="p-4 rounded-tr-lg" onclick="window.sortTable('marketCap', 'number', 'watchlist')">Market Cap <span id="watchlist-marketCap-sort-icon"></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="watchlist-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        
+        <section id="dataset" class="my-16">
+            <div class="kpi-card rounded-lg shadow-md p-6 max-w-full overflow-x-auto">
+                <h2 class="text-3xl font-bold text-center mb-8 chart-title">Raw Dataset</h2>
+                <div class="flex flex-col md:flex-row gap-4 mb-6 items-center justify-center">
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="sectorFilter" class="text-sm font-medium text-gray-700">Filter by Sector:</label>
+                        <select id="sectorFilter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-all">
+                            <option value="">All Sectors</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="companySearch" class="text-sm font-medium text-gray-700">Search by Symbol:</label>
+                        <input type="text" id="companySearch" placeholder="e.g., MMM" class="mt-1 block w-full pl-3 pr-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-all">
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="priceMax" class="text-sm font-medium text-gray-700">Max Price:</label>
+                        <input type="number" id="priceMax" placeholder="e.g., 100" class="mt-1 block w-full pl-3 pr-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-all">
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label for="peMax" class="text-sm font-medium text-gray-700">Max P/E Ratio:</label>
+                        <input type="number" id="peMax" placeholder="e.g., 25" class="mt-1 block w-full pl-3 pr-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-all">
+                    </div>
+                    <button onclick="window.clearFilters()" class="w-full md:w-auto px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all">Clear Filters</button>
+                </div>
+                <p class="text-center mb-6 max-w-4xl mx-auto">The underlying data used to create the charts above. Click on "Analyze" to get a financial summary of the company.</p>
+                <table class="w-full text-left border-collapse table-auto">
+                    <thead>
+                        <tr class="bg-primary text-white">
+                            <th class="p-4">⭐</th>
+                            <th class="p-4" onclick="window.sortTable('symbol', 'string')">Symbol <span id="symbol-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('name', 'string')">Name <span id="name-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('sector', 'string')">Sector <span id="sector-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('price', 'number')">Price <span id="price-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('pe', 'number')">P/E <span id="pe-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('dividend', 'number')">Dividend Yield <span id="dividend-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('marketCap', 'number')">Market Cap <span id="marketCap-sort-icon"></span></th>
+                            <th class="p-4" onclick="window.sortTable('ebitda', 'number')">EBITDA <span id="ebitda-sort-icon"></span></th>
+                            <th class="p-4 rounded-tr-lg">Analysis</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companies-table-body">
+                    </tbody>
+                </table>
+                
+                <!-- Pagination -->
+                <div id="pagination-container" class="mt-6 flex justify-center">
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="analysis-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="window.closeModal()">&times;</span>
+            <h3 id="analysis-title" class="text-xl font-bold mb-4 chart-title"></h3>
+            <div id="loading-spinner" class="spinner my-8"></div>
+            <div id="analysis-content" class="text-left space-y-4">
+                <div id="summary-section">
+                    <h4 class="text-lg font-semibold chart-title mb-2">Analyst's Summary</h4>
+                    <p id="analysis-text" class="text-gray-700"></p>
+                </div>
+                <div id="ratios-section" style="display:none;">
+                    <h4 class="text-lg font-semibold chart-title mb-2">Key Financial Ratios</h4>
+                    <ul id="ratios-list" class="list-disc list-inside space-y-1 text-gray-700"></ul>
+                </div>
+                <div id="swot-section" style="display:none;">
+                    <h4 class="text-lg font-semibold chart-title mb-2">SWOT Analysis</h4>
+                    <ul id="swot-list" class="list-disc list-inside space-y-1 text-gray-700"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="header text-white text-center p-6 mt-16">
+        <p>&copy; 2025 Financials Comparison Dashboard. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
