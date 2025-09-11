@@ -7,7 +7,9 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build-css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
-    "build": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify"
+    "build": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write ."
   },
   "keywords": [
     "financial",
@@ -24,12 +26,17 @@
     "csv-parser": "^3.2.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "fs": "^0.0.1-security"
+    "fs": "^0.0.1-security",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
     "nodemon": "^3.0.1",
     "postcss": "^8.4.24",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.3.0"
   }
 }
