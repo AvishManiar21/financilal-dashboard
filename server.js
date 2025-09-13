@@ -3,6 +3,8 @@ const path = require('path');
 const cors = require('cors');
 const KaggleDataService = require('./services/kaggleDataService');
 const MLService = require('./services/mlService');
+const swaggerUi = require('swagger-ui-express');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,6 +16,15 @@ const kaggleDataService = new KaggleDataService();
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
+// Swagger docs
+try {
+    const openApiSpec = JSON.parse(fs.readFileSync(require('path').join(__dirname, 'openapi.json'), 'utf8'));
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
+    console.log('Swagger UI available at /docs');
+} catch (e) {
+    console.warn('OpenAPI spec not loaded:', e.message);
+}
 
 // Routes
 app.get('/', (req, res) => {

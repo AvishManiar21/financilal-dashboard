@@ -2,6 +2,7 @@
   "name": "financial-dashboard",
   "version": "1.0.0",
   "description": "A financial comparison dashboard built with Node.js, Express, and Tailwind CSS",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -30,6 +31,7 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
     "autoprefixer": "^10.4.14",
     "eslint": "^9.35.0",
     "eslint-config-prettier": "^10.1.8",

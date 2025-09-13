@@ -1,0 +1,62 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Financial Dashboard API",
+    "version": "1.0.0",
+    "description": "Local API over Kaggle CSV with ML utilities"
+  },
+  "servers": [ { "url": "http://localhost:3000" } ],
+  "paths": {
+    "/api/companies": {
+      "get": {
+        "summary": "List companies",
+        "parameters": [
+          { "name": "sector", "in": "query", "schema": {"type":"string"} },
+          { "name": "limit", "in": "query", "schema": {"type":"integer","minimum":1} }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/company/{symbol}": {
+      "get": {
+        "summary": "Get single company",
+        "parameters": [ { "name": "symbol", "in": "path", "required": true, "schema": {"type":"string"} } ],
+        "responses": { "200": { "description": "OK" }, "404": {"description":"Not found"} }
+      }
+    },
+    "/api/sectors": { "get": { "summary": "List sectors", "responses": { "200": {"description":"OK"} } } },
+    "/api/metrics": { "get": { "summary": "List metric keys", "responses": { "200": {"description":"OK"} } } },
+    "/api/stats": { "get": { "summary": "Basic stats", "responses": { "200": {"description":"OK"} } } },
+    "/api/health": { "get": { "summary": "Health check", "responses": { "200": {"description":"OK"} } } },
+    "/api/ml/cluster": {
+      "post": {
+        "summary": "K-means clustering",
+        "requestBody": { "required": false, "content": { "application/json": { "schema": { "type": "object", "properties": { "features": { "type": "array", "items": {"type":"string"} }, "k": {"type":"integer"}, "limit": {"type":"integer"} } } } } },
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/ml/anomalies": {
+      "get": {
+        "summary": "Z-score anomalies for a metric",
+        "parameters": [
+          { "name": "metric", "in": "query", "schema": {"type":"string"} },
+          { "name": "threshold", "in": "query", "schema": {"type":"number"} },
+          { "name": "limit", "in": "query", "schema": {"type":"integer"} }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/ml/regression": {
+      "get": {
+        "summary": "Simple linear regression",
+        "parameters": [
+          { "name": "x", "in": "query", "schema": {"type":"string"} },
+          { "name": "y", "in": "query", "schema": {"type":"string"} },
+          { "name": "limit", "in": "query", "schema": {"type":"integer"} }
+        ],
+        "responses": { "200": { "description": "OK" } }
+      }
+    }
+  }
+}
+
