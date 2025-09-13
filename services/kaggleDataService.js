@@ -38,8 +38,8 @@ class KaggleDataService {
                             ebitda: parseFloat(data.EBITDA) || 0,
                             priceSales: parseFloat(data['Price/Sales']) || 0,
                             priceBook: parseFloat(data['Price/Book']) || 0,
-                            high52W: parseFloat(data['52 Week High']) || 0,
-                            low52W: parseFloat(data['52 Week Low']) || 0,
+                            high52W: parseFloat(data['52 Week Low']) || 0, // CSV has columns swapped
+                            low52W: parseFloat(data['52 Week High']) || 0, // CSV has columns swapped
                             secFilings: data['SEC Filings'] || '',
                             hasFinancialData: true
                         };

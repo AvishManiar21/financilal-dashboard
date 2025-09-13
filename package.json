@@ -2,7 +2,6 @@
   "name": "financial-dashboard",
   "version": "1.0.0",
   "description": "A financial comparison dashboard built with Node.js, Express, and Tailwind CSS",
-  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
