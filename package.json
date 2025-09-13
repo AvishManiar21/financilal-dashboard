@@ -4,12 +4,12 @@
   "description": "A financial comparison dashboard built with Node.js, Express, and Tailwind CSS",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
-    "build-css": "tailwindcss -i ./src/input.css -o ./public/css/style.css --watch",
-    "build": "tailwindcss -i ./src/input.css -o ./public/css/style.css --minify",
-    "lint": "eslint . --ext .js",
-    "format": "prettier --write ."
+    "start": "\"C:\\Program Files\\nodejs\\node.exe\" server.js",
+    "dev": "\"C:\\Program Files\\nodejs\\node.exe\" node_modules\\nodemon\\bin\\nodemon.js server.js",
+    "build-css": "\"C:\\Program Files\\nodejs\\node.exe\" node_modules\\tailwindcss\\lib\\cli.js -i ./src/input.css -o ./public/css/style.css --watch",
+    "build": "\"C:\\Program Files\\nodejs\\node.exe\" node_modules\\tailwindcss\\lib\\cli.js -i ./src/input.css -o ./public/css/style.css --minify",
+    "lint": "\"C:\\Program Files\\nodejs\\node.exe\" node_modules\\eslint\\bin\\eslint.js . --ext .js",
+    "format": "\"C:\\Program Files\\nodejs\\node.exe\" node_modules\\prettier\\bin\\prettier.js --write ."
   },
   "keywords": [
     "financial",
